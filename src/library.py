@@ -1,5 +1,9 @@
-from pathlib import PosixPath 
+""" Custom Common functions
+"""
+
+from pathlib import PosixPath
 import configparser
+
 
 def read_config_file(filename: PosixPath, features: str = 'DEFAULT') -> dict:
     """read_config_file Function reads configuration files and return a
