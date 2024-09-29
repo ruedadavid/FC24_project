@@ -19,29 +19,36 @@ def main() -> None:
     #
     rut = read_config_file(filename=config_file_route, features='DATA')
     url = 'web_url'
-    #
-    #
+    routes = read_config_file(filename=config_file_route, features='ROUTES')
+    scrappers = read_config_file(filename=config_file_route, features='SCRAPPER')
     for page in range(int(rut['max_pages'])):
         count = page + 1
         complete_route = f'{rut[url]}{count}'
         page = requests.get(complete_route, timeout=30)
-        routes = read_config_file(filename=config_file_route, features='ROUTES')
+        print(scrappers['scrapper_max'])
+        #
+        print(routes)
+        #
         if page.status_code == 200:
             soup = BeautifulSoup(page.content, 'html.parser')
+            limits = soup.find_all('span', class_=scrappers['scrapper_max'])
+            limit = int(limits[-1].text)
+            print(f"\n{limit}\n")
             link_list = []
-            for link in soup.find_all("a", class_="Table_profileCellAnchor__L23hq"):
+            #
+            for link in soup.find_all("a", class_=scrappers['player_link']):
                 link_list.append(link)
             list02 = [link['href']for link in link_list]
             out_dir = PosixPath(routes['output_dir'])
-            output_file = PosixPath.joinpath(out_dir, f'file{count}.json').resolve()
-            with open(output_file, 'w', encoding='utf-8') as f:
+            output_file = PosixPath.joinpath(out_dir, f'file{count}.json')
+            with open(output_file.resolve(), 'w', encoding='utf-8') as f:
                 json.dump(list02, f, indent=2)
             #
             #
         examples = [0, 10 , 20, 30, 60, 80 ,99]
         for ex in examples:
             tmp_text = link_list[ex].text
-            tmp = re.split(r'#\d+', tmp_text, maxsplit=0, flags=0)[1]
+            tmp = re.split(r'\D+', tmp_text, maxsplit=0, flags=0)[0]
             print(f'<<{tmp}>>,<<{link_list[ex]["href"]}>>')
 
 
