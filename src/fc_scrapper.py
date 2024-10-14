@@ -35,16 +35,16 @@ def get_limit(
 def main() -> None:
     """main _summary_
     """
-    src_dir = '/home/davo/Projects/FC24_project/src'
-    src_route = PosixPath(src_dir)
+    src_route = PosixPath(__file__).parent.resolve()
+    print(src_route)
     url = 'web_url'
     config_file = 'app.messages.conf'
-    config_file_route = PosixPath.joinpath(src_route, config_file)
+    config_file_route = src_route.joinpath(config_file)
     #
     rut = read_config_file(filename=config_file_route, features='DATA')
     routes = read_config_file(filename=config_file_route, features='ROUTES')
+    routes = {key:src_route.joinpath(route) for key, route in routes.items()}
     scrappers = read_config_file(filename=config_file_route, features='SCRAPPER')
-    out_dir = PosixPath(routes['output_dir'])
     #
     ea_page = 0
     ea_pages = 200
@@ -75,7 +75,7 @@ def main() -> None:
         #
         if req.status_code == 200:
             output_file = PosixPath.joinpath(
-                out_dir,
+                routes['output_dir'],
                 f'file{ea_page + 1}.json'
             )
             soup = BeautifulSoup(
