@@ -1,7 +1,7 @@
 """ Scrapper for FC25
 """
 from pathlib import PosixPath
-import re
+#import re
 import json
 import typer
 import requests
@@ -9,11 +9,12 @@ from bs4 import BeautifulSoup
 from library import read_config_file
 
 
-def get_limit(
+def get_data(
     soup: BeautifulSoup,
     name:str,
-    class_:str
-) -> int:
+    class_:str,
+    all_data:bool = True
+) -> list:
     """fname _summary_
 
     Parameters
@@ -30,84 +31,79 @@ def get_limit(
         name = name,
         class_ = class_
     )
-    return int(finds[-1].text)
+    if all_data:
+        return finds
+    return [finds[-1].text]
 
 def main() -> None:
     """main _summary_
     """
-    src_route = PosixPath(__file__).parent.resolve()
+    src_route = PosixPath(__file__).parent.parent.resolve()
     print(src_route)
     url = 'web_url'
     config_file = 'app.messages.conf'
-    config_file_route = src_route.joinpath(config_file)
+    config_file_route = src_route.joinpath('src', config_file)
     #
-    rut = read_config_file(filename=config_file_route, features='DATA')
-    routes = read_config_file(filename=config_file_route, features='ROUTES')
+    rut = read_config_file(
+        filename=config_file_route,
+        features='DATA'
+    )
+    routes = read_config_file(
+        filename=config_file_route,
+        features='ROUTES'
+    )
+    scrappers = read_config_file(
+        filename=config_file_route,
+        features='SCRAPPER'
+    )
+    #
     routes = {key:src_route.joinpath(route) for key, route in routes.items()}
-    scrappers = read_config_file(filename=config_file_route, features='SCRAPPER')
-    #
+    print(routes)
     ea_page = 0
-    ea_pages = 200
+    ea_last_page = int(rut['max_pages'])
+    player_links = []
     while True:
         ea_page = ea_page + 1
-        complete_route = f'{rut[url]}{ea_page}'
-        req = requests.get(complete_route, timeout=30)
-        soup = BeautifulSoup(
-                markup = req.content,
-                features = 'html.parser'
-        )
-        print(f'{ea_page}')
-        if req.status_code == 200:
-            if ea_page == 1:
-                limit = get_limit(
-                    soup,
-                    scrappers['scrapper_max_type'],
-                    scrappers['scrapper_max']
-                )
-                print(f'Páginas { limit }-{ ea_page }')
-            if ea_page == limit:
-                print(f'P+aginas { ea_page }')
-                break
-        if ea_page == ea_pages:
-            break
-    for ea_page in range(int(rut['max_pages'])):
-        complete_route = f'{rut[url]}{ea_page + 1}'
-        #
-        if req.status_code == 200:
-            output_file = PosixPath.joinpath(
+        output_file = PosixPath.joinpath(
                 routes['output_dir'],
-                f'file{ea_page + 1}.json'
+                f'file{ea_page}.json'
             )
+        complete_route = f'{rut[url]}{ea_page}'
+        req = requests.get(
+            url=complete_route,
+            timeout=30
+        )
+        print(f'Páginas { ea_last_page }-{ ea_page }')
+        if ea_page == ea_last_page:
+            break
+        if req.status_code == 200:
             soup = BeautifulSoup(
                 markup = req.content,
                 features = 'html.parser'
             )
-            if ea_page == 0:
-                limits = soup.find_all(
-                    name = scrappers['scrapper_max_type'],
-                    class_ = scrappers['scrapper_max'],
+            if ea_page == 1:
+                ea_last_page = int(
+                    get_data(
+                        soup,
+                        scrappers['scrapper_max_type'],
+                        scrappers['scrapper_max'],
+                        all_data=False
+                    )[0]
                 )
-                limit = int(limits[-1].text)
-                print(f"\n{limit}\n")
-            link_list = []
-            #
-            player_cards = soup.find_all(
+                print(f"last page: >> {ea_last_page}: {type(ea_last_page)}>>")
+            if ea_page == ea_last_page:
+                print(f'Páginas { ea_page }')
+                break
+            player_cards = get_data(
+                soup = soup,
                 name = scrappers['player_class_type'],
                 class_ = scrappers['player_link']
             )
             link_list = [link for link in player_cards]
-            list02 = [link['href'] for link in link_list]
-            #
-            #
+            player_links = [link['href'] for link in link_list]
             with open(output_file.resolve(), 'w', encoding='utf-8') as f:
-                json.dump(list02, f, indent=2)
-            #
-            #
-        examples = [0, 10 , 20, 30, 60, 80 ,99]
-        for ex in examples:
-            tmp_text = link_list[ex].text
-            tmp = re.split(r'\D+', tmp_text, maxsplit=0, flags=0)[0]
-            print(f'<<{tmp}>>,<<{link_list[ex]["href"]}>>')
+                json.dump(player_links, f, indent=2)
+            print(player_links)
 
 
 if __name__ == "__main__":
