@@ -38,7 +38,7 @@ def get_data(
 def main() -> None:
     """main _summary_
     """
-    config_file = 'app.messages.conf'
+    config_file = 'parameters.conf'
     src_route = PosixPath(__file__).parent.parent.resolve()
     config_file_route = src_route.joinpath('src', config_file)
     #
