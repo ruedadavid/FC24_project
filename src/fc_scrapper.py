@@ -38,10 +38,8 @@ def get_data(
 def main() -> None:
     """main _summary_
     """
-    src_route = PosixPath(__file__).parent.parent.resolve()
-    print(src_route)
-    url = 'web_url'
     config_file = 'app.messages.conf'
+    src_route = PosixPath(__file__).parent.parent.resolve()
     config_file_route = src_route.joinpath('src', config_file)
     #
     routes = read_config_file(
@@ -64,7 +62,7 @@ def main() -> None:
                 routes['output_dir'],
                 f'file{ea_page}.json'
             )
-        complete_route = f'{scrappers['url']}{ea_page}'
+        complete_route = f"{scrappers['url']}{ea_page}"
         req = requests.get(
             url=complete_route,
             timeout=30
