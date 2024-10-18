@@ -6,7 +6,7 @@ import json
 import typer
 import requests
 from bs4 import BeautifulSoup
-from library import read_config_file
+from utils import read_config_file
 
 
 def get_data(
