@@ -44,10 +44,6 @@ def main() -> None:
     config_file = 'app.messages.conf'
     config_file_route = src_route.joinpath('src', config_file)
     #
-    rut = read_config_file(
-        filename=config_file_route,
-        features='DATA'
-    )
     routes = read_config_file(
         filename=config_file_route,
         features='ROUTES'
@@ -60,7 +56,7 @@ def main() -> None:
     routes = {key:src_route.joinpath(route) for key, route in routes.items()}
     print(routes)
     ea_page = 0
-    ea_last_page = int(rut['max_pages'])
+    ea_last_page = 2
     player_links = []
     while True:
         ea_page = ea_page + 1
@@ -68,7 +64,7 @@ def main() -> None:
                 routes['output_dir'],
                 f'file{ea_page}.json'
             )
-        complete_route = f'{rut[url]}{ea_page}'
+        complete_route = f'{scrappers['url']}{ea_page}'
         req = requests.get(
             url=complete_route,
             timeout=30
