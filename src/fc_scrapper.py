@@ -1,4 +1,4 @@
-""" Scrapper for FC25
+""" Scraper for FC25
 """
 from pathlib import PosixPath
 #import re
@@ -46,9 +46,9 @@ def main() -> None:
         filename=config_file_route,
         features='ROUTES'
     )
-    scrappers = read_config_file(
+    scrapers = read_config_file(
         filename=config_file_route,
-        features='SCRAPPER'
+        features='SCRAPER'
     )
     #
     routes = {key:src_route.joinpath(route) for key, route in routes.items()}
@@ -62,7 +62,7 @@ def main() -> None:
                 routes['output_dir'],
                 f'file{ea_page}.json'
             )
-        complete_route = f"{scrappers['url']}{ea_page}"
+        complete_route = f"{scrapers['url']}{ea_page}"
         req = requests.get(
             url=complete_route,
             timeout=30
@@ -79,8 +79,8 @@ def main() -> None:
                 ea_last_page = int(
                     get_data(
                         soup,
-                        scrappers['scrapper_max_type'],
-                        scrappers['scrapper_max'],
+                        scrapers['scraper_max_type'],
+                        scrapers['scraper_max'],
                         all_data=False
                     )[0]
                 )
@@ -90,8 +90,8 @@ def main() -> None:
                 break
             player_cards = get_data(
                 soup = soup,
-                name = scrappers['player_class_type'],
-                class_ = scrappers['player_link']
+                name = scrapers['player_class_type'],
+                class_ = scrapers['player_link']
             )
             link_list = [link for link in player_cards]
             player_links = [link['href'] for link in link_list]
