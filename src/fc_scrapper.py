@@ -87,11 +87,10 @@ def main(
                 print(f"last page: >> {ea_last_page}: {type(ea_last_page)}>>")
             player_cards = get_data(
                 soup = soup,
-                name = scrapers['player_class_type'],
+                name = scrapers['player_link_type'],
                 class_ = scrapers['player_link']
             )
-            link_list = [link for link in player_cards]
-            player_links = [link['href'] for link in link_list]
+            player_links = [player_link.get('href') for player_link in player_cards]
             #
             with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(player_links, f, indent=2)
