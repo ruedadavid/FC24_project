@@ -4,6 +4,7 @@ from pathlib import PosixPath
 #import re
 import json
 import typer
+from typing_extensions import Annotated
 import requests
 from bs4 import BeautifulSoup
 from utils import read_config_file
@@ -35,7 +36,9 @@ def get_data(
         return finds
     return [finds[-1].text]
 
-def main() -> None:
+def main(
+    ea_last_page: Annotated[int, typer.Option("--pages", "-p")] = -1
+) -> None:
     """main _summary_
     """
     config_file = 'parameters.conf'
@@ -54,7 +57,6 @@ def main() -> None:
     routes = {key:src_route.joinpath(route) for key, route in routes.items()}
     print(routes)
     ea_page = 0
-    ea_last_page = 2
     player_links = []
     while True:
         ea_page = ea_page + 1
@@ -68,14 +70,12 @@ def main() -> None:
             timeout=30
         )
         print(f'Páginas { ea_last_page }-{ ea_page }')
-        if ea_page == ea_last_page:
-            break
         if req.status_code == 200:
             soup = BeautifulSoup(
                 markup = req.content,
                 features = 'html.parser'
             )
-            if ea_page == 1:
+            if ea_page == 1 and ea_last_page == -1:
                 ea_last_page = int(
                     get_data(
                         soup,
@@ -85,9 +85,6 @@ def main() -> None:
                     )[0]
                 )
                 print(f"last page: >> {ea_last_page}: {type(ea_last_page)}>>")
-            if ea_page == ea_last_page:
-                print(f'Páginas { ea_page }')
-                break
             player_cards = get_data(
                 soup = soup,
                 name = scrapers['player_class_type'],
@@ -95,9 +92,14 @@ def main() -> None:
             )
             link_list = [link for link in player_cards]
             player_links = [link['href'] for link in link_list]
-            with open(output_file.resolve(), 'w', encoding='utf-8') as f:
+            #
+            with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(player_links, f, indent=2)
-            print(player_links)
+            #
+            print(f"Página {output_file}, Links/página: {len(player_links)}:")
+            if ea_page == ea_last_page:
+                print(f'\nTotal de páginas visitadas/descargadas { ea_page }')
+                break
 
 
 if __name__ == "__main__":
