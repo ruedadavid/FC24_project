@@ -8,6 +8,7 @@ from typing_extensions import Annotated
 import requests
 from bs4 import BeautifulSoup
 from utils import read_config_file
+import re
 
 
 def get_data(
@@ -56,8 +57,9 @@ def main(
     #
     routes = {key:src_route.joinpath(route) for key, route in routes.items()}
     print(routes)
-    ea_page = 0
-    player_links = []
+    ea_page: int = 0
+    player_links: list = []
+    players: dict = {}
     while True:
         ea_page = ea_page + 1
         output_file = PosixPath.joinpath(
@@ -91,6 +93,12 @@ def main(
                 class_ = scrapers['player_link']
             )
             player_links = [plr_link.get('href') for plr_link in player_cards]
+            for plr_link in player_cards:
+                tmp_link = plr_link.get('href').split('/')[-1]
+                tmp_name = re.split(r"\d+", plr_link.getText())[-1]
+                print(tmp_name)
+                players.update({tmp_link: {'name', tmp_name}})
+            print(players)
             #
             with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(player_links, f, indent=2)
